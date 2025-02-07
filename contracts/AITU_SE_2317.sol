@@ -3,8 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract AITU_SE_2317 is ERC20 {
-    // Структура для хранения информации о транзакциях
+contract AITU_SE_217 is ERC20 {
     struct Transaction {
         address sender;
         address receiver;
@@ -12,66 +11,88 @@ contract AITU_SE_2317 is ERC20 {
         uint256 timestamp;
     }
 
-    // Массив для записи транзакций
     Transaction[] public transactions;
 
-    // Событие для логирования транзакций
-    event TransactionLogged(address indexed sender, address indexed receiver, uint256 amount, uint256 timestamp);
-
-    // Конструктор для создания токена с начальными настройками
-    constructor (string memory name, string memory symbol, uint256 initialSupply) ERC20(name, symbol) {
-    require(bytes(name).length > 0, "Name is required");
-    require(bytes(symbol).length > 0, "Symbol is required");
-    require(initialSupply > 0, "Initial supply must be greater than zero");
-
-    _mint(msg.sender, initialSupply);
- }
-
-    // Переопределение функции transfer для записи транзакций
-    function transfer(address recipient, uint256 amount) public override returns (bool) {
-    // Call the parent ERC20 transfer function
-    bool success = super.transfer(recipient, amount);
-    
-    // If the transfer is successful, log the transaction
-    if (success) {
-        transactions.push(Transaction({
-            sender: msg.sender,
-            receiver: recipient,
-            amount: amount,
-            timestamp: block.timestamp
-        }));
-        emit TransactionLogged(msg.sender, recipient, amount, block.timestamp);
+    constructor() ERC20("SE-2317", "SE_17") {
+        _mint(msg.sender, 2000 * 10 ** decimals()); // Mint 2000 tokens with 18 decimals
     }
-    
-    return success;
- }
 
-    // Функция для получения времени последней транзакции
+    // Override the transfer function to log transactions
+    function transfer(address recipient, uint256 amount) public override returns (bool) {
+        bool success = super.transfer(recipient, amount);
+        if (success) {
+            transactions.push(Transaction({
+                sender: msg.sender,
+                receiver: recipient,
+                amount: amount,
+                timestamp: block.timestamp
+            }));
+        }
+        return success;
+    }
+
+    // Retrieve transaction information by index
+    function getTransaction(uint256 index) public view returns (
+        address sender,
+        address receiver,
+        uint256 amount,
+        uint256 timestamp
+    ) {
+        require(index < transactions.length, "Transaction does not exist");
+        Transaction memory transaction = transactions[index];
+        return (
+            transaction.sender,
+            transaction.receiver,
+            transaction.amount,
+            transaction.timestamp
+        );
+    }
+
+    // Return the block timestamp of the latest transaction in a human-readable format
     function getLatestTransactionTimestamp() public view returns (uint256) {
-        require(transactions.length > 0, "No transactions recorded");
+        require(transactions.length > 0, "No transactions found");
         return transactions[transactions.length - 1].timestamp;
     }
 
-    // Функция для получения адреса отправителя последней транзакции
+    // Retrieve the address of the transaction sender for the latest transaction
     function getLatestTransactionSender() public view returns (address) {
-        require(transactions.length > 0, "No transactions recorded");
+        require(transactions.length > 0, "No transactions found");
         return transactions[transactions.length - 1].sender;
     }
 
-    // Функция для получения адреса получателя последней транзакции
+    // Retrieve the address of the transaction receiver for the latest transaction
     function getLatestTransactionReceiver() public view returns (address) {
-        require(transactions.length > 0, "No transactions recorded");
+        require(transactions.length > 0, "No transactions found");
         return transactions[transactions.length - 1].receiver;
     }
 
-    // Функция для получения всей информации о последней транзакции
-    function getLatestTransactionDetails()
-        public
-        view
-        returns (address sender, address receiver, uint256 amount, uint256 timestamp)
-    {
-        require(transactions.length > 0, "No transactions recorded");
-        Transaction storage latestTransaction = transactions[transactions.length - 1];
-        return (latestTransaction.sender, latestTransaction.receiver, latestTransaction.amount, latestTransaction.timestamp);
+    // Helper function to convert timestamp to a human-readable string
+    function timestampToString(uint256 timestamp) internal pure returns (string memory) {
+        return string(abi.encodePacked(
+            "Timestamp: ",
+            uint2str(timestamp)
+        ));
+    }
+
+    // Helper function to convert uint256 to string
+    function uint2str(uint256 _i) internal pure returns (string memory) {
+        if (_i == 0) {
+            return "0";
+        }
+        uint256 j = _i;
+        uint256 length;
+        while (j != 0) {
+            length++;
+            j /= 10;
+        }
+        bytes memory bstr = new bytes(length);
+        uint256 k = length;
+        while (_i != 0) {
+            k = k - 1;
+            uint8 temp = uint8(48 + _i % 10);
+            bstr[k] = bytes1(temp);
+            _i /= 10;
+        }
+        return string(bstr);
     }
 }

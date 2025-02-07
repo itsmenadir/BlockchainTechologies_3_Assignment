@@ -84,6 +84,19 @@ function getLatestTransactionDetails()
 ```
 
 
+### Screenshots
+
+![alt text](image.png)
+
+
+
+### Members
+
+Moldabek Zhanbatyr SE-2317
+
+Shugay Nadir SE-2317
+
+Pavel Kan SE-2317
 
 
 
